@@ -6,8 +6,7 @@
 <title>GoFundMyBrokeAss</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --green:#02a95c; --green-d:#028a4b; --ink:#242424; --mut:#6f6f6f;
@@ -45,9 +44,6 @@
   .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
   .play .circ{width:72px;height:72px;border-radius:50%;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center}
   .play .tri{width:0;height:0;border-left:22px solid #fff;border-top:13px solid transparent;border-bottom:13px solid transparent;margin-left:6px}
-  .likes{position:absolute;right:16px;bottom:14px;text-align:center;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.5)}
-  .likes .heart{font-size:30px}
-  .likes .cnt{font-weight:700;font-size:15px}
 
   .organizer{display:flex;align-items:center;gap:12px;margin:20px 0 22px}
   .avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;color:#fff;background:var(--green)}
@@ -116,7 +112,6 @@
 
   #confetti{position:fixed;inset:0;pointer-events:none;z-index:300}
 
-  /* setup overlay */
   #setup{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px}
   #setup.show{display:flex}
   .setupcard{background:#fff;border-radius:16px;max-width:560px;width:100%;padding:28px;max-height:85vh;overflow:auto}
@@ -154,7 +149,6 @@
         <img src="https://i.ibb.co/CcsBYNf/Screenshot-2026-08-03-233341.png" alt="the beneficiary" onerror="document.getElementById('media').classList.add('broke')">
         <div class="fallback">📸 thumbnail went broke too</div>
         <div class="play"><div class="circ"><div class="tri"></div></div></div>
-        <div class="likes"><div class="heart">🤍</div><div class="cnt">1.5M</div></div>
       </div>
 
       <div class="organizer">
@@ -167,7 +161,7 @@
 
       <div class="story">
         <p>this bum ass fucking loser spedyester (me) needs help he is in 1 million dollar debt because of this bum ass fucking polyester shit he bought</p>
-        <p>goal is 1,000 bands ($1,000). 1 band = $1. every click from every person just helps brokies helping a brokie.</p>
+        <p>goal is 1,000 bands ($1,000). 1 band = $1. every click from every person just helps for more lucky charms and flagships.</p>
       </div>
     </div>
 
@@ -197,12 +191,12 @@
 
       <hr>
 
-      <label for="nick">yo nickname (anything. lie if you want)</label>
+      <label for="nick">your name gooby</label>
       <input id="nick" maxlength="24" placeholder="e.g. definitely_not_his_mom" autocomplete="off">
-      <div class="err" id="err">put a nickname first, bum</div>
-      <div class="err" id="doneMsg">your ip/device already paid. one band per bum.</div>
+      <div class="err" id="err">put a name first, bum</div>
+      <div class="err" id="doneMsg">your device already paid. one band per bum ass boi.</div>
       <button id="payBtn" disabled>loading…</button>
-      <div class="fine">1 band = $1 · goal $1,000 · no real money moves · parody site</div>
+      <div class="fine">1 band = $1 · goal $1,000</div>
     </div>
   </div>
 </div>
@@ -214,51 +208,45 @@
 <div id="toasts"></div>
 <canvas id="confetti"></canvas>
 
-<!-- setup overlay (only shows when firebase isn't configured) -->
+<!-- setup overlay (only shows if supabase keys are missing) -->
 <div id="setup">
   <div class="setupcard">
-    <h2>⚠️ connect firebase or this stays a pretty picture</h2>
-    <p>a website alone can't sync people across the internet — it needs a free firebase database behind it. 5 minutes:</p>
+    <h2>⚠️ connect supabase or this stays a pretty picture</h2>
+    <p>a website alone can't sync people across the internet — it needs a free database behind it:</p>
     <ol>
-      <li><a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → add project</li>
-      <li>Build → <b>Realtime Database</b> → create it</li>
-      <li>Rules tab → paste <code>{"rules":{".read":true,".write":true}}</code> → publish</li>
-      <li>Project settings → your apps → <b>web</b> → copy the config</li>
-      <li>paste it into <code>FIREBASE_CONFIG</code> in this file's code</li>
+      <li><a href="https://supabase.com" target="_blank">supabase.com</a> → sign in with GitHub</li>
+      <li><b>SQL Editor</b> → paste the SQL → Run</li>
+      <li><b>Project Settings</b> → copy Project URL + publishable key</li>
+      <li>paste them into <code>SUPABASE_URL</code> / <code>SUPABASE_KEY</code> in the code</li>
     </ol>
     <button class="peek" onclick="document.getElementById('setup').classList.remove('show')">peek at the design anyway</button>
   </div>
 </div>
 
 <script>
-/* ================= PASTE YOUR FIREBASE CONFIG HERE ================= */
-const FIREBASE_CONFIG = {
-  apiKey: "PASTE_YOURS",
-  authDomain: "PASTE_YOURS",
-  databaseURL: "PASTE_YOURS",   // shows up after you create the Realtime Database
-  projectId: "PASTE_YOURS",
-  appId: "PASTE_YOURS"
-};
-/* =================================================================== */
+/* ============ SUPABASE — ALREADY CONNECTED, DON'T TOUCH ============ */
+const SUPABASE_URL = "https://eggkxqbisgxhrplbfqox.supabase.co";
+const SUPABASE_KEY = "sb_publishable_7QPDkc1uGECxiUBkcnXb_A_43C-Gqy6";
+/* ==================================================================== */
 
 const GOAL = 1000;        // bands. 1 band = $1 → $1,000 total
 const BAND_USD = 1;
-const ROOT = 'gfmbla';
 
 const $ = s => document.querySelector(s);
 const fmt = n => n.toLocaleString('en-US');
 const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
 const rand = n => Math.floor(Math.random() * n);
 
-const configured = FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.includes('PASTE');
+const configured = SUPABASE_URL && !SUPABASE_URL.includes('PASTE');
 
 /* ---------- shared state ---------- */
-let total = 0, donorCount = 0, prevTotal = null;
-let donors = [];                 // last 30 from db
+let total = 0, donorCount = 0, seenState = false;
+let donors = [];
+const donorIds = new Set();
 let mode = 'recent', expanded = false, booted = false;
-let paidLocked = false, funded = false, busy = false, myDonorKey = null;
-let finished = false;
-let myDevHash = null, myIpHash = null, myMask = '';
+let paidLocked = false, funded = false, busy = false, finished = false;
+let selfJustPaid = false;
+let devHash = null, ipHash = null;
 
 /* ---------- device id ---------- */
 let devId = localStorage.getItem('gfmbla_dev');
@@ -273,7 +261,7 @@ async function sha256(str) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
     return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
   }
-  let h = 5381; // insecure fallback for http contexts
+  let h = 5381;
   for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0;
   return 'f' + h.toString(16);
 }
@@ -357,14 +345,23 @@ function relTime(ts) {
   if (s < 86400) return Math.floor(s/3600)+'h';
   return Math.floor(s/86400)+'d';
 }
+function addDonor(d) {
+  if (donorIds.has(d.id)) return;
+  donorIds.add(d.id);
+  donors.push({ id: d.id, n: d.name || 'anon', b: d.bands || 1, t: new Date(d.created_at || Date.now()).getTime() });
+  donors.sort((a,b) => b.id - a.id);
+  renderDonors();
+}
 function renderDonors() {
   const box = $('#donors');
   if (!donors.length) {
     box.innerHTML = '<div class="empty">nobody yet. be the first band.</div>';
     return;
   }
-  const list = donors.slice().sort((a,b) => mode==='top' ? (b.b-a.b || b.t-a.t) : (b.t-a.t));
-  const vis = expanded ? list : list.slice(0,5);
+  const list = mode === 'top'
+    ? donors.slice().sort((a,b) => b.b-a.b || b.t-a.t)
+    : donors.slice();
+  const vis = (expanded ? list.slice(0,30) : list.slice(0,5));
   box.innerHTML = vis.map(d => `
     <div class="donor">
       <div class="davatar" style="background:${PASTELS[(d.n.charCodeAt(0)+d.n.length)%PASTELS.length]}">${esc([...d.n][0].toUpperCase())}</div>
@@ -385,7 +382,7 @@ function lockAlreadyPaid() {
   if (funded || paidLocked) return;
   paidLocked = true;
   $('#payBtn').disabled = true;
-  $('#payBtn').textContent = 'already paid, chill';
+  $('#payBtn').textContent = 'already paid bruv i have 0 wallahis left';
   $('#nick').disabled = true;
   $('#doneMsg').classList.add('show');
 }
@@ -407,64 +404,80 @@ if (!configured) {
   $('#setup').classList.add('show');
   $('#liveDot').classList.add('off');
   $('#vNum').textContent = '0';
-  $('#payBtn').textContent = 'connect firebase first';
-  console.error('Paste your firebase config into FIREBASE_CONFIG at the top of the script.');
+  $('#payBtn').textContent = 'connect supabase first';
+  console.error('Paste your Supabase URL + key at the top of the script.');
 } else {
-  firebase.initializeApp(FIREBASE_CONFIG);
-  const db = firebase.database();
-  const R = p => db.ref(ROOT + '/' + p);
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  /* presence: REAL online count */
-  const pid = (sessionStorage.getItem('gfmbla_pid') ||
-    'p' + Math.random().toString(36).slice(2) + Date.now().toString(36));
-  sessionStorage.setItem('gfmbla_pid', pid);
-  const pRef = R('presence/' + pid);
-  pRef.set(firebase.database.ServerValue.TIMESTAMP);
-  pRef.onDisconnect().remove();
-  R('presence').on('value', s => {
-    let n = 0;
-    s.forEach(ch => { if (Date.now() - (ch.val() || 0) < 5*60e3) n++; }); // ignore stale
-    $('#vNum').textContent = n;
-  });
+  /* lock check: device */
+  sha256(devId + '::gfmbla').then(h => { devHash = h; checkLocks(); });
 
-  /* live total — same for everyone */
-  R('total').on('value', s => {
-    total = s.val() || 0;
-    if (total >= GOAL) { finish(prevTotal === null); }
-    else if (prevTotal !== null && prevTotal < GOAL) { /* crossed in a weird way, ignore */ }
-    prevTotal = total;
-    renderAll();
-  });
-
-  R('count').on('value', s => { donorCount = s.val() || 0; renderNumbers(); });
-
-  /* live donor feed */
-  R('donors').limitToLast(30).on('child_added', s => {
-    const v = s.val() || {};
-    donors.push({ n: v.n || 'anon', b: v.b || 1, t: v.t || Date.now() });
-    if (donors.length > 30) donors.shift();
-    if (booted && s.key !== myDonorKey) toast(`🟢 <b>${esc(v.n)}</b> paid <b>${v.b} band${v.b>1?'s':''}</b>`);
-    renderDonors();
-  });
-  R('donors').limitToLast(30).on('value', () => { booted = true; });
-
-  /* one-per-person lock: device */
-  sha256(devId + '::gfmbla').then(h => {
-    myDevHash = h;
-    R('paid/' + h).on('value', s => { if (s.val() && !funded) lockAlreadyPaid(); });
-  });
-
-  /* one-per-person lock: real ip (hashed) */
+  /* lock check: real ip (hashed) */
   fetch('https://api.ipify.org?format=json')
     .then(r => r.json())
     .then(async d => {
-      if (d && d.ip) {
-        myMask = d.ip.split('.')[0] + '.••.••.••';
-        myIpHash = await sha256(d.ip + '::gfmbla');
-        R('paid/' + myIpHash).on('value', s => { if (s.val() && !funded) lockAlreadyPaid(); });
+      if (d && d.ip) ipHash = await sha256(d.ip + '::gfmbla');
+      checkLocks();
+    })
+    .catch(() => { checkLocks(); });
+
+  function checkLocks() {
+    if (!devHash) return;
+    (async () => {
+      let q = 'hash.eq.' + devHash;
+      if (ipHash) q += ',hash.eq.' + ipHash;
+      const { data } = await sb.from('paid_locks').select('hash').or(q).limit(1);
+      if (data && data.length && !funded) lockAlreadyPaid();
+    })();
+  }
+
+  /* presence + realtime (REAL online count, REAL live total) */
+  const pid = (sessionStorage.getItem('gfmbla_pid') ||
+    'p' + Math.random().toString(36).slice(2) + Date.now().toString(36));
+  sessionStorage.setItem('gfmbla_pid', pid);
+
+  const channel = sb.channel('brokeass', { config: { presence: { key: pid } } });
+
+  channel
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'gfm_state' }, p => {
+      if (p.new && typeof p.new.total === 'number') {
+        total = p.new.total;
+        donorCount = p.new.count || 0;
+        if (total >= GOAL) finish(!seenState);
+        seenState = true;
+        renderAll();
       }
     })
-    .catch(() => {});
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'donors' }, p => {
+      addDonor(p.new);
+      if (booted) {
+        if (selfJustPaid) selfJustPaid = false;
+        else toast(`🟢 <b>${esc(p.new.name)}</b> paid <b>${p.new.bands} band${p.new.bands>1?'s':''}</b>`);
+      }
+    })
+    .on('presence', { event: 'sync' }, () => {
+      $('#vNum').textContent = Object.keys(channel.presenceState()).length;
+    })
+    .subscribe(async status => {
+      if (status === 'SUBSCRIBED') {
+        await channel.track({});
+        loadInitial();
+      }
+    });
+
+  async function loadInitial() {
+    const { data: st } = await sb.from('gfm_state').select('*').eq('id', 1).maybeSingle();
+    if (st) {
+      total = st.total; donorCount = st.count || 0;
+      seenState = true;
+      if (total >= GOAL) finish(true);
+      renderAll();
+    }
+    const { data: rows } = await sb.from('donors').select('*').order('id', { ascending: false }).limit(30);
+    (rows || []).forEach(addDonor);
+    booted = true;
+    renderDonors();
+  }
 
   /* donate */
   async function pay() {
@@ -483,36 +496,30 @@ if (!configured) {
     $('#payBtn').textContent = 'lock in';
 
     try {
-      const devH = myDevHash || await sha256(devId + '::gfmbla');
-      const ipH  = myIpHash;
-      // double-check the lock server-side right before writing
-      const [a, b] = await Promise.all([
-        R('paid/' + devH).once('value'),
-        ipH ? R('paid/' + ipH).once('value') : Promise.resolve(null)
-      ]);
-      if (a.val() || (b && b.val())) { busy = false; lockAlreadyPaid(); return; }
+      const dh = devHash || await sha256(devId + '::gfmbla');
+      const { data, error } = await sb.rpc('donate', { p_name: name, p_dev: dh, p_ip: ipHash });
+      if (error) throw error;
 
-      // claim the spot
-      await R('paid/' + devH).set(true);
-      if (ipH) await R('paid/' + ipH).set(true).catch(() => {});
+      if (!data || !data.ok) {
+        if (data && data.reason === 'already') lockAlreadyPaid();
+        else finish(false);
+        busy = false;
+        return;
+      }
 
-      // push donor + bump counters
-      const ref = R('donors').push();
-      myDonorKey = ref.key;
-      await ref.set({ n: name, b: 1, t: firebase.database.ServerValue.TIMESTAMP });
-      await R('total').transaction(v => (v || 0) + 1);
-      await R('count').transaction(v => (v || 0) + 1);
+      if (typeof data.total === 'number') { total = Math.max(total, data.total); renderAll(); }
 
+      selfJustPaid = true;
       paidLocked = true;
       $('#payBtn').disabled = true;
-      $('#payBtn').textContent = 'already paid, chill';
+      $('#payBtn').textContent = 'already paid bruv i have 0 wallahis left';
       $('#nick').disabled = true;
       $('#doneMsg').classList.add('show');
       kaching();
       toast(`💸 <b>${esc(name)}</b> (you) paid <b>1 band</b>. spedyester says "t".`);
     } catch (e) {
       toast('⚠️ db said no. try again.');
-      $('#payBtn').textContent = 'broke dude need a band';
+      $('#payBtn').textContent = 'broke boi need a band';
     }
     busy = false;
   }
@@ -523,8 +530,7 @@ if (!configured) {
   $('#seeTop').addEventListener('click', () => { mode = mode === 'top' ? 'recent' : 'top'; renderDonors(); });
 
   $('#payBtn').disabled = false;
-  $('#payBtn').textContent = 'Pay this bitch a band';
-  renderAll();
+  $('#payBtn').textContent = 'I need Lucky charms asap';
 }
 </script>
 </body>
