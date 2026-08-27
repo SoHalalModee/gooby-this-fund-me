@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoFundMyBrokeAss</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+  :root{
+    --green:#02a95c; --green-d:#028a4b; --ink:#242424; --mut:#6f6f6f;
+    --line:#e3e3e3; --chip:#e8f1fb; --chip-ink:#1c57a5;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased}
+
+  header{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid #f0f0f0;height:68px;display:flex;align-items:center;padding:0 24px;gap:20px}
+  .nav{display:flex;align-items:center;gap:22px;font-size:14.5px;font-weight:500;color:#3d3d3d}
+  .nav span{cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+  .chev{font-size:9px;color:#9a9a9a;transform:translateY(1px)}
+  .logo{flex:1;text-align:center;font-weight:800;font-size:23px;letter-spacing:-.6px;color:var(--green);cursor:pointer;user-select:none}
+  .logo .u{position:relative;display:inline-block}
+  .logo .u svg{position:absolute;top:-11px;left:50%;transform:translateX(-50%)}
+  .right{display:flex;align-items:center;gap:20px;font-size:14.5px;font-weight:500;color:#3d3d3d}
+  .right span{cursor:pointer}
+  .start-btn{background:var(--green);color:#fff;border:none;font:inherit;font-weight:600;padding:11px 18px;border-radius:999px;cursor:pointer}
+  .start-btn:hover{background:var(--green-d)}
+  @media(max-width:860px){.nav,.signin{display:none}}
+
+  .wrap{max-width:1120px;margin:0 auto;padding:20px 24px 80px}
+  .chip{display:inline-flex;align-items:center;gap:7px;background:var(--chip);color:var(--chip-ink);font-size:13px;font-weight:600;padding:6px 12px;border-radius:8px;margin:10px 0 14px}
+  .chip.funded{background:#e6f4ea;color:#1e7a3c}
+  h1{font-size:clamp(28px,4.5vw,44px);font-weight:800;letter-spacing:-1.2px;line-height:1.12;margin-bottom:26px}
+
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:36px;align-items:start}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+
+  .media{position:relative;border-radius:16px;overflow:hidden;background:#111;aspect-ratio:16/10}
+  .media img{width:100%;height:100%;object-fit:cover;display:block}
+  .media .fallback{display:none;position:absolute;inset:0;align-items:center;justify-content:center;color:#9a9a9a;background:#1b1b1b}
+  .media.broke img{display:none}
+  .media.broke .fallback{display:flex}
+  .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+  .play .circ{width:72px;height:72px;border-radius:50%;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center}
+  .play .tri{width:0;height:0;border-left:22px solid #fff;border-top:13px solid transparent;border-bottom:13px solid transparent;margin-left:6px}
+  .likes{position:absolute;right:16px;bottom:14px;text-align:center;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+  .likes .heart{font-size:30px}
+  .likes .cnt{font-weight:700;font-size:15px}
+
+  .organizer{display:flex;align-items:center;gap:12px;margin:20px 0 22px}
+  .avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;color:#fff;background:var(--green)}
+  .organizer .name{font-weight:700;font-size:15px}
+  .organizer .sub{font-size:13px;color:var(--mut);margin-top:1px}
+
+  .story{font-size:15.5px;line-height:1.7;color:#303030;max-width:640px}
+  .story p+p{margin-top:14px}
+
+  .dcard{border:1px solid var(--line);border-radius:16px;padding:24px;position:sticky;top:92px}
+  @media(max-width:900px){.dcard{position:static}}
+  .live{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--mut);margin-bottom:16px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .dot.off{background:#d43c3c;animation:none}
+
+  .prog{display:flex;gap:16px;align-items:center}
+  .ringwrap{position:relative;width:64px;height:64px;flex-shrink:0}
+  .ringwrap svg{transform:rotate(-90deg)}
+  .ringwrap .track{stroke:#ececec}
+  .ringwrap .bar{stroke:var(--green);stroke-linecap:round;transition:stroke-dashoffset .7s cubic-bezier(.22,1,.36,1)}
+  .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700}
+  .raised{font-size:22px;letter-spacing:-.4px}
+  .raised strong{font-weight:800}
+  .raised .of{color:var(--mut);font-size:19px}
+  .bandinfo{font-size:13px;color:var(--mut);margin-top:3px}
+
+  .donors{margin-top:20px;display:flex;flex-direction:column;gap:15px}
+  .donors.scroll{max-height:430px;overflow-y:auto;padding-right:4px}
+  .donor{display:flex;align-items:center;gap:12px}
+  .davatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#2c2c2c;flex-shrink:0}
+  .dinfo{flex:1;min-width:0}
+  .dname{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dsub{font-size:13px;color:var(--mut);margin-top:1px}
+  .dsub b{font-weight:600;color:#4c4c4c}
+  .empty{color:#b5b5b5;font-size:13.5px;text-align:center;padding:14px 0}
+
+  .tools{display:flex;gap:10px;margin-top:20px}
+  .pill{flex:1;border:1.5px solid #d6d6d6;background:#fff;border-radius:999px;padding:11px 0;font:inherit;font-size:14px;font-weight:600;cursor:pointer;color:#333}
+  .pill:hover{border-color:#9a9a9a}
+  .pill.on{border-color:var(--green);color:var(--green);background:#f0faf5}
+
+  hr{border:none;border-top:1px solid #eee;margin:22px 0}
+  label{display:block;font-size:13px;font-weight:600;color:#4c4c4c;margin-bottom:7px}
+  #nick{width:100%;padding:13px 14px;border:1.5px solid #ccc;border-radius:10px;font:inherit;font-size:14.5px;outline:none}
+  #nick:focus{border-color:var(--green)}
+  #nick:disabled{background:#f5f5f5;color:#999}
+  #nick.shake{animation:shake .35s}
+  @keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+  .err{color:#d43c3c;font-size:12.5px;margin-top:7px;display:none}
+  .err.show{display:block}
+
+  #payBtn{width:100%;margin-top:14px;background:var(--green);color:#fff;border:none;border-radius:999px;height:54px;font:inherit;font-size:16.5px;font-weight:700;cursor:pointer;transition:transform .08s}
+  #payBtn:hover:not(:disabled){background:var(--green-d)}
+  #payBtn:active:not(:disabled){transform:scale(.98)}
+  #payBtn:disabled{background:#e2e2e2;color:#9a9a9a;cursor:not-allowed}
+  .fine{font-size:12px;color:#9a9a9a;text-align:center;margin-top:12px;line-height:1.5}
+
+  footer{max-width:1120px;margin:0 auto;padding:0 24px 60px;text-align:center;font-size:12.5px;color:#a5a5a5;line-height:1.7}
+
+  #toasts{position:fixed;left:18px;bottom:18px;z-index:200;display:flex;flex-direction:column;gap:9px;pointer-events:none}
+  .toast{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.1);padding:11px 15px;font-size:13.5px;font-weight:500;display:flex;align-items:center;gap:8px;animation:tin .3s cubic-bezier(.22,1,.36,1);max-width:320px}
+  .toast b{font-weight:700}
+  @keyframes tin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .toast.out{opacity:0;transition:opacity .3s}
+
+  #confetti{position:fixed;inset:0;pointer-events:none;z-index:300}
+
+  /* setup overlay */
+  #setup{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px}
+  #setup.show{display:flex}
+  .setupcard{background:#fff;border-radius:16px;max-width:560px;width:100%;padding:28px;max-height:85vh;overflow:auto}
+  .setupcard h2{font-size:20px;letter-spacing:-.4px;margin-bottom:6px}
+  .setupcard p{font-size:14px;color:#555;line-height:1.6}
+  .setupcard ol{margin:16px 0;padding-left:20px;font-size:14px;line-height:1.9;color:#333}
+  .setupcard code{background:#f3f3f3;padding:2px 6px;border-radius:5px;font-size:12.5px}
+  .setupcard a{color:var(--green);font-weight:600}
+  .peek{margin-top:10px;border:1.5px solid #d6d6d6;background:#fff;border-radius:999px;padding:11px 22px;font:inherit;font-weight:600;cursor:pointer}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <span>🔍 Search</span>
+    <span>Donate <span class="chev">▾</span></span>
+    <span>Fundraise <span class="chev">▾</span></span>
+  </div>
+  <div class="logo" onclick="location.reload()">gofundmybroke<span class="u">a<svg width="11" height="11" viewBox="0 0 24 24" fill="#02a95c"><path d="M12 0l2.4 7.2L22 4.8l-4.8 6 6.8 3.2-7.2 1.6L19 22l-7-4.4L5 22l2.2-6.4L0 14l6.8-3.2L2 4.8l7.6 2.4z"/></svg></span>ss</div>
+  <div class="right">
+    <span>About <span class="chev">▾</span></span>
+    <span class="signin">Sign in</span>
+    <button class="start-btn" onclick="document.getElementById('nick').focus()">Start a GoFundMe</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="chip" id="chip">ⓘ Donations: open &amp; desperate</div>
+  <h1>help me out mf</h1>
+
+  <div class="grid">
+    <div>
+      <div class="media" id="media">
+        <img src="https://i.ibb.co/CcsBYNf/Screenshot-2026-08-03-233341.png" alt="the beneficiary" onerror="document.getElementById('media').classList.add('broke')">
+        <div class="fallback">📸 thumbnail went broke too</div>
+        <div class="play"><div class="circ"><div class="tri"></div></div></div>
+        <div class="likes"><div class="heart">🤍</div><div class="cnt">1.5M</div></div>
+      </div>
+
+      <div class="organizer">
+        <div class="avatar">S</div>
+        <div>
+          <div class="name">spedyester</div>
+          <div class="sub">Organizer · professionally broke</div>
+        </div>
+      </div>
+
+      <div class="story">
+        <p>this bum ass fucking loser spedyester (me) needs help he is in 1 million dollar debt because of this bum ass fucking polyester shit he bought</p>
+        <p>goal is 1,000 bands ($1,000). 1 band = $1. every click from every person just helps brokies helping a brokie.</p>
+      </div>
+    </div>
+
+    <div class="dcard">
+      <div class="live"><span class="dot" id="liveDot"></span><span><b id="vNum">—</b> brokies online now</span></div>
+
+      <div class="prog">
+        <div class="ringwrap">
+          <svg width="64" height="64" viewBox="0 0 64 64">
+            <circle class="track" cx="32" cy="32" r="26" fill="none" stroke-width="6"/>
+            <circle class="bar" id="ring" cx="32" cy="32" r="26" fill="none" stroke-width="6" stroke-dasharray="163.36" stroke-dashoffset="163.36"/>
+          </svg>
+          <div class="pct" id="pct">0%</div>
+        </div>
+        <div aria-live="polite">
+          <div class="raised"><strong id="raised">$0</strong> raised <span class="of">of <u>$1,000</u></span></div>
+          <div class="bandinfo" id="bandinfo">0 / 1,000 bands</div>
+        </div>
+      </div>
+
+      <div class="donors" id="donors"><div class="empty">nobody yet. be the first band.</div></div>
+
+      <div class="tools">
+        <button class="pill" id="seeAll">See all</button>
+        <button class="pill" id="seeTop">☆ See top</button>
+      </div>
+
+      <hr>
+
+      <label for="nick">yo nickname (anything. lie if you want)</label>
+      <input id="nick" maxlength="24" placeholder="e.g. definitely_not_his_mom" autocomplete="off">
+      <div class="err" id="err">put a nickname first, bum</div>
+      <div class="err" id="doneMsg">your ip/device already paid. one band per bum.</div>
+      <button id="payBtn" disabled>loading…</button>
+      <div class="fine">1 band = $1 · goal $1,000 · no real money moves · parody site</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  hi i am sped and i am broke as hell
+</footer>
+
+<div id="toasts"></div>
+<canvas id="confetti"></canvas>
+
+<!-- setup overlay (only shows when firebase isn't configured) -->
+<div id="setup">
+  <div class="setupcard">
+    <h2>⚠️ connect firebase or this stays a pretty picture</h2>
+    <p>a website alone can't sync people across the internet — it needs a free firebase database behind it. 5 minutes:</p>
+    <ol>
+      <li><a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → add project</li>
+      <li>Build → <b>Realtime Database</b> → create it</li>
+      <li>Rules tab → paste <code>{"rules":{".read":true,".write":true}}</code> → publish</li>
+      <li>Project settings → your apps → <b>web</b> → copy the config</li>
+      <li>paste it into <code>FIREBASE_CONFIG</code> in this file's code</li>
+    </ol>
+    <button class="peek" onclick="document.getElementById('setup').classList.remove('show')">peek at the design anyway</button>
+  </div>
+</div>
+
+<script>
+/* ================= PASTE YOUR FIREBASE CONFIG HERE ================= */
+const FIREBASE_CONFIG = {
+  apiKey: "PASTE_YOURS",
+  authDomain: "PASTE_YOURS",
+  databaseURL: "PASTE_YOURS",   // shows up after you create the Realtime Database
+  projectId: "PASTE_YOURS",
+  appId: "PASTE_YOURS"
+};
+/* =================================================================== */
+
+const GOAL = 1000;        // bands. 1 band = $1 → $1,000 total
+const BAND_USD = 1;
+const ROOT = 'gfmbla';
+
+const $ = s => document.querySelector(s);
+const fmt = n => n.toLocaleString('en-US');
+const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+const rand = n => Math.floor(Math.random() * n);
+
+const configured = FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.includes('PASTE');
+
+/* ---------- shared state ---------- */
+let total = 0, donorCount = 0, prevTotal = null;
+let donors = [];                 // last 30 from db
+let mode = 'recent', expanded = false, booted = false;
+let paidLocked = false, funded = false, busy = false, myDonorKey = null;
+let finished = false;
+let myDevHash = null, myIpHash = null, myMask = '';
+
+/* ---------- device id ---------- */
+let devId = localStorage.getItem('gfmbla_dev');
+if (!devId) {
+  devId = 'dev-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  localStorage.setItem('gfmbla_dev', devId);
+}
+
+/* ---------- hashing (device + ip) ---------- */
+async function sha256(str) {
+  if (window.crypto && crypto.subtle) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  let h = 5381; // insecure fallback for http contexts
+  for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0;
+  return 'f' + h.toString(16);
+}
+
+/* ---------- toasts / fx ---------- */
+function toast(html) {
+  const box = $('#toasts'), el = document.createElement('div');
+  el.className = 'toast'; el.innerHTML = html;
+  box.appendChild(el);
+  while (box.children.length > 4) box.firstChild.remove();
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 320); }, 4000);
+}
+function kaching() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const play = (f, t0) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'triangle'; o.frequency.value = f;
+      g.gain.setValueAtTime(.0001, t0);
+      g.gain.exponentialRampToValueAtTime(.18, t0 + .02);
+      g.gain.exponentialRampToValueAtTime(.0001, t0 + .35);
+      o.connect(g); g.connect(ctx.destination); o.start(t0); o.stop(t0 + .4);
+    };
+    play(1318.5, ctx.currentTime); play(1975.5, ctx.currentTime + .09);
+  } catch (e) {}
+}
+function confetti() {
+  const cv = $('#confetti'), ctx = cv.getContext('2d');
+  cv.width = innerWidth; cv.height = innerHeight;
+  const colors = ['#02a95c','#ffd166','#4cc9f0','#f72585','#90be6d','#fff'];
+  const parts = Array.from({ length: 150 }, () => ({
+    x: cv.width/2 + (Math.random()-.5)*cv.width*.5, y: cv.height*.25,
+    vx: (Math.random()-.5)*11, vy: Math.random()*-9-3,
+    w: 5+Math.random()*6, h: 8+Math.random()*8,
+    r: Math.random()*Math.PI, vr: (Math.random()-.5)*.25,
+    c: colors[rand(colors.length)], life: 1
+  }));
+  const t0 = performance.now();
+  (function frame(t) {
+    ctx.clearRect(0,0,cv.width,cv.height);
+    let alive = false;
+    for (const p of parts) {
+      p.vy += .22; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life -= .006;
+      if (p.life > 0 && p.y < cv.height+30) {
+        alive = true;
+        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r);
+        ctx.globalAlpha = Math.max(0,p.life);
+        ctx.fillStyle = p.c; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+        ctx.restore();
+      }
+    }
+    if (alive && t-t0 < 6000) requestAnimationFrame(frame);
+    else ctx.clearRect(0,0,cv.width,cv.height);
+  })(t0);
+}
+
+/* ---------- rendering ---------- */
+const CIRC = 163.36, PASTELS = ['#e8f0fe','#e6f4ea','#fdf2e0','#fde8e8','#f3e8fd','#e0f7f5','#fff6d9'];
+let shownRaised = 0;
+function tween(from, to, cb) {
+  const t0 = performance.now();
+  (function step(t) {
+    const p = Math.min(1, (t-t0)/650), e = 1-Math.pow(1-p,3);
+    cb(Math.round(from+(to-from)*e));
+    if (p < 1) requestAnimationFrame(step);
+  })(t0);
+}
+function renderNumbers() {
+  const p = Math.min(1, total/GOAL);
+  $('#ring').style.strokeDashoffset = CIRC*(1-p);
+  $('#pct').textContent = Math.round(p*100)+'%';
+  tween(shownRaised, total*BAND_USD, v => $('#raised').textContent = '$'+fmt(v));
+  shownRaised = total*BAND_USD;
+  $('#bandinfo').textContent = `${fmt(total)} / ${fmt(GOAL)} bands · ${fmt(donorCount)} donator${donorCount===1?'':'s'}`;
+  document.title = funded ? 'Money bich · GoFundMyBrokeAss' : `$${fmt(total*BAND_USD)} raised · GoFundMyBrokeAss`;
+}
+function relTime(ts) {
+  const s = (Date.now()-ts)/1000;
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s/60)+'m';
+  if (s < 86400) return Math.floor(s/3600)+'h';
+  return Math.floor(s/86400)+'d';
+}
+function renderDonors() {
+  const box = $('#donors');
+  if (!donors.length) {
+    box.innerHTML = '<div class="empty">nobody yet. be the first band.</div>';
+    return;
+  }
+  const list = donors.slice().sort((a,b) => mode==='top' ? (b.b-a.b || b.t-a.t) : (b.t-a.t));
+  const vis = expanded ? list : list.slice(0,5);
+  box.innerHTML = vis.map(d => `
+    <div class="donor">
+      <div class="davatar" style="background:${PASTELS[(d.n.charCodeAt(0)+d.n.length)%PASTELS.length]}">${esc([...d.n][0].toUpperCase())}</div>
+      <div class="dinfo">
+        <div class="dname">${esc(d.n)}</div>
+        <div class="dsub"><b>$${fmt(d.b*BAND_USD)}</b> · ${d.b} band${d.b>1?'s':''} · ${relTime(d.t)}</div>
+      </div>
+    </div>`).join('');
+  box.classList.toggle('scroll', expanded);
+  $('#seeAll').textContent = expanded ? 'See less' : 'See all';
+  $('#seeTop').textContent = mode==='top' ? '☆ See recent' : '☆ See top';
+  $('#seeTop').classList.toggle('on', mode==='top');
+}
+function renderAll(){ renderNumbers(); renderDonors(); }
+
+/* ---------- lock / finish ---------- */
+function lockAlreadyPaid() {
+  if (funded || paidLocked) return;
+  paidLocked = true;
+  $('#payBtn').disabled = true;
+  $('#payBtn').textContent = 'already paid, chill';
+  $('#nick').disabled = true;
+  $('#doneMsg').classList.add('show');
+}
+function finish(silent) {
+  if (finished) return;
+  finished = true; funded = true;
+  $('#payBtn').disabled = true;
+  $('#payBtn').textContent = 'Money bich';
+  $('#nick').disabled = true;
+  $('#doneMsg').classList.remove('show');
+  $('#chip').className = 'chip funded';
+  $('#chip').textContent = '✓ FUNDED — he is still broke though';
+  renderAll();
+  if (!silent) { confetti(); kaching(); toast('👌 <b>W SEED HIT — MONEY BRA.</b>'); }
+}
+
+/* ---------- main ---------- */
+if (!configured) {
+  $('#setup').classList.add('show');
+  $('#liveDot').classList.add('off');
+  $('#vNum').textContent = '0';
+  $('#payBtn').textContent = 'connect firebase first';
+  console.error('Paste your firebase config into FIREBASE_CONFIG at the top of the script.');
+} else {
+  firebase.initializeApp(FIREBASE_CONFIG);
+  const db = firebase.database();
+  const R = p => db.ref(ROOT + '/' + p);
+
+  /* presence: REAL online count */
+  const pid = (sessionStorage.getItem('gfmbla_pid') ||
+    'p' + Math.random().toString(36).slice(2) + Date.now().toString(36));
+  sessionStorage.setItem('gfmbla_pid', pid);
+  const pRef = R('presence/' + pid);
+  pRef.set(firebase.database.ServerValue.TIMESTAMP);
+  pRef.onDisconnect().remove();
+  R('presence').on('value', s => {
+    let n = 0;
+    s.forEach(ch => { if (Date.now() - (ch.val() || 0) < 5*60e3) n++; }); // ignore stale
+    $('#vNum').textContent = n;
+  });
+
+  /* live total — same for everyone */
+  R('total').on('value', s => {
+    total = s.val() || 0;
+    if (total >= GOAL) { finish(prevTotal === null); }
+    else if (prevTotal !== null && prevTotal < GOAL) { /* crossed in a weird way, ignore */ }
+    prevTotal = total;
+    renderAll();
+  });
+
+  R('count').on('value', s => { donorCount = s.val() || 0; renderNumbers(); });
+
+  /* live donor feed */
+  R('donors').limitToLast(30).on('child_added', s => {
+    const v = s.val() || {};
+    donors.push({ n: v.n || 'anon', b: v.b || 1, t: v.t || Date.now() });
+    if (donors.length > 30) donors.shift();
+    if (booted && s.key !== myDonorKey) toast(`🟢 <b>${esc(v.n)}</b> paid <b>${v.b} band${v.b>1?'s':''}</b>`);
+    renderDonors();
+  });
+  R('donors').limitToLast(30).on('value', () => { booted = true; });
+
+  /* one-per-person lock: device */
+  sha256(devId + '::gfmbla').then(h => {
+    myDevHash = h;
+    R('paid/' + h).on('value', s => { if (s.val() && !funded) lockAlreadyPaid(); });
+  });
+
+  /* one-per-person lock: real ip (hashed) */
+  fetch('https://api.ipify.org?format=json')
+    .then(r => r.json())
+    .then(async d => {
+      if (d && d.ip) {
+        myMask = d.ip.split('.')[0] + '.••.••.••';
+        myIpHash = await sha256(d.ip + '::gfmbla');
+        R('paid/' + myIpHash).on('value', s => { if (s.val() && !funded) lockAlreadyPaid(); });
+      }
+    })
+    .catch(() => {});
+
+  /* donate */
+  async function pay() {
+    if (busy || paidLocked || funded) return;
+    const input = $('#nick'), err = $('#err');
+    const name = input.value.trim().slice(0,24);
+    if (!name) {
+      err.classList.add('show');
+      input.classList.remove('shake'); void input.offsetWidth; input.classList.add('shake');
+      input.focus();
+      return;
+    }
+    err.classList.remove('show');
+
+    busy = true;
+    $('#payBtn').textContent = 'lock in';
+
+    try {
+      const devH = myDevHash || await sha256(devId + '::gfmbla');
+      const ipH  = myIpHash;
+      // double-check the lock server-side right before writing
+      const [a, b] = await Promise.all([
+        R('paid/' + devH).once('value'),
+        ipH ? R('paid/' + ipH).once('value') : Promise.resolve(null)
+      ]);
+      if (a.val() || (b && b.val())) { busy = false; lockAlreadyPaid(); return; }
+
+      // claim the spot
+      await R('paid/' + devH).set(true);
+      if (ipH) await R('paid/' + ipH).set(true).catch(() => {});
+
+      // push donor + bump counters
+      const ref = R('donors').push();
+      myDonorKey = ref.key;
+      await ref.set({ n: name, b: 1, t: firebase.database.ServerValue.TIMESTAMP });
+      await R('total').transaction(v => (v || 0) + 1);
+      await R('count').transaction(v => (v || 0) + 1);
+
+      paidLocked = true;
+      $('#payBtn').disabled = true;
+      $('#payBtn').textContent = 'already paid, chill';
+      $('#nick').disabled = true;
+      $('#doneMsg').classList.add('show');
+      kaching();
+      toast(`💸 <b>${esc(name)}</b> (you) paid <b>1 band</b>. spedyester says "t".`);
+    } catch (e) {
+      toast('⚠️ db said no. try again.');
+      $('#payBtn').textContent = 'broke dude need a band';
+    }
+    busy = false;
+  }
+
+  $('#payBtn').addEventListener('click', pay);
+  $('#nick').addEventListener('keydown', e => { if (e.key === 'Enter') pay(); });
+  $('#seeAll').addEventListener('click', () => { expanded = !expanded; renderDonors(); });
+  $('#seeTop').addEventListener('click', () => { mode = mode === 'top' ? 'recent' : 'top'; renderDonors(); });
+
+  $('#payBtn').disabled = false;
+  $('#payBtn').textContent = 'Pay this bitch a band';
+  renderAll();
+}
+</script>
+</body>
+</html>
